@@ -1,33 +1,28 @@
-  var data1;
-  var  data_temp = [
-    { country: "India", Year: 1950, Population: 10 },
-    { country: "Bng", Year: 1950, Population: 20 },
-    { country: "India", Year: 1960, Population: 300 },
-    { country: "Bng", Year: 1960, Population: 10 }
-  ];
+  var data_csv;
   async function loadData() {
    
     try {
-       data1 = await d3.csv("population.csv");
+       data_csv = await d3.csv("population.csv");
       // for year dropdown
-      const year = Array.from(new Set(data1.map(d => d.Year)));
+      const year = Array.from(new Set(data_csv.map(d => d.Year)));
      
         loadYear(year)
 //for scatter plot
-const filteredData = data1.filter(obj => obj.Year === '1950');
+const filteredData = data_csv.filter(obj => obj.Year === '1950');
 
 filteredData_arr=[]
 filteredData.forEach(element => {
-    filteredData_arr.push({'Year':parseInt(element.Year),'Population':parseInt(element.Population),
-'Population_Density':parseInt(element.Population_Density),'Population_Growth_Rate':parseInt(element.Population_Growth_Rate)})
+    filteredData_arr.push({'Country':element.Country,'Year':parseInt(element.Year),'Population':parseInt(element.Population),
+'Population_Density':parseInt(element.Population_Density),'Population_Growth_Rate':Number(element.Population_Growth_Rate).toFixed(2)})
   });
+  console.log(filteredData)
   //load scatter plot
   loadScatterPlot(filteredData_arr)
 
   
   
      let arr_remove_comma=[]
-     data1.forEach(element => {
+     data_csv.forEach(element => {
         arr_remove_comma.push({'Year':parseInt(element.Year),'Population':parseInt(element.Population.replace(/\,/g,'')),
     'Population_Density':parseInt(element.Population_Density),'Population_Growth_Rate':parseInt(element.Population_Growth_Rate)})
       });
@@ -174,6 +169,29 @@ function loadAreaChart(arr){
             .attr("r", d => r(d.Population))
             .style("fill", "blue")
             .style("opacity", 0.5)
+            .on('mouseover', function(event,d) {
+               
+              tooltip.html(`<b>${d.Country} (${d.Year}):</b><br>
+                          Population Density: ${d.Population_Density}<br>
+                          Population Growth Rate: ${(d.Population_Growth_Rate*100).toFixed(2)}%`)
+              .style('visibility', 'visible');
+            })
+            .on('mousemove', function(event) {
+                console.log(event)
+              tooltip.style('top', `${event.pageY - 10}px`)
+                     .style('left', `${event.pageX + 10}px`);
+            })
+            .on('mouseout', function() {
+              d3.select(this).attr('r', 5);
+              tooltip.style('visibility', 'hidden');
+            });
+          
+          const tooltip = d3.select('body')
+            .append('div')
+            .attr('class', 'tooltip')
+            .style('position', 'absolute')
+            .style('z-index', '10')
+            .style('visibility', 'hidden');
 
          
    
@@ -195,14 +213,13 @@ function loadAreaChart(arr){
             // Do something with the selected country
             const myDiv = document.getElementById("chart_scatter");
         myDiv.innerHTML = "";
-        const filteredData = data1.filter(obj => obj.Year === selectedYear);
+        const filteredData = data_csv.filter(obj => obj.Year === selectedYear);
 
         filteredData_arr=[]
         filteredData.forEach(element => {
-            filteredData_arr.push({'Year':parseInt(element.Year),'Population':parseInt(element.Population),
-        'Population_Density':parseInt(element.Population_Density),'Population_Growth_Rate':parseInt(element.Population_Growth_Rate)
-    })
-        });
+            filteredData_arr.push({'Country':element.Country,'Year':parseInt(element.Year),'Population':parseInt(element.Population),
+        'Population_Density':parseInt(element.Population_Density),'Population_Growth_Rate':Number(element.Population_Growth_Rate).toFixed(2)})
+          });
         loadScatterPlot(filteredData_arr)
         });
   }
@@ -216,22 +233,24 @@ function loadAreaChart(arr){
 
       function hideOnMobile() {
         console.log(screen.width)
+        let  myDiv_chart = document.getElementById("growth_box");
+        let myDiv = document.getElementById("container_year");
+        let my_div_box = document.getElementById("areaChart");
         if (screen.width < 700) {
-            let  myDiv_chart = document.getElementById("chart");
+            
             myDiv_chart.style.display = "none";
-
-            let myDiv = document.getElementById("container_year");
             myDiv.style.justifyContent = "center";
-            myDiv.style.alignItems = "center"
+            myDiv.style.alignItems = "center";
+            my_div_box.style.justifyContent = "center";
+
         }
         else{
-            let  myDiv_chart = document.getElementById("chart");
+          
             myDiv_chart.style.display = "block";
-
-            let myDiv = document.getElementById("container_year");
             myDiv.style.paddingLeft = "10px";
             myDiv.style.alignItems = "center"
             myDiv.style.justifyContent = "flex-start"
+            my_div_box.style.justifyContent = "flex-start";
         }
     }
 
